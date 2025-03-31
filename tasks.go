@@ -42,16 +42,18 @@ func GetLastID() int {
 	return len(files)
 }
 
-func AlreadyHasName(name string) bool {
+func ReadAllFiles() []string {
 	files, err := filepath.Glob("dh/task*.json")
 	if err != nil {
 		fmt.Println("Error searching files:", err)
-		return false
+		return nil
 	}
 
-	if len(files) <= 0 {
-		fmt.Println("No task found")
-	}
+	return files
+}
+
+func SearchTask(name string) *Task {
+	files := ReadAllFiles()
 
 	for _, file := range files {
 		data, err := os.ReadFile(file)
@@ -68,11 +70,11 @@ func AlreadyHasName(name string) bool {
 		}
 
 		if name == task.Name {
-			return true
+			return &task
 		}
 	}
 
-	return false
+	return nil
 }
 
 // COMMANDS
@@ -86,6 +88,8 @@ func HandleTasksCommand() {
 		InitTasks()
 	case "create":
 		CreateTask()
+	case "list":
+		PrintTask()
 	}
 }
 
@@ -110,7 +114,7 @@ func CreateTask() {
 	name := os.Args[3]
 	termStr := os.Args[4]
 
-	if AlreadyHasName(name) {
+	if SearchTask(name) != nil {
 		fmt.Println("Already has a task with that name")
 		return
 	}
@@ -151,4 +155,49 @@ func CreateTask() {
 	}
 
 	fmt.Println("Task created succefully")
+}
+
+func PrintTask() {
+	if len(os.Args) < 4 {
+		fmt.Println("Usage: go run . tasks list --all or --status <status>")
+	}
+	
+	arg := os.Args[3]
+
+	files := ReadAllFiles()
+	if len(files) == 0 {
+		fmt.Println("No task found.")
+		return
+	}
+
+	if arg == "--all" {
+		for _, file := range files {
+			data, err := os.ReadFile(file)
+
+			if err != nil {
+				fmt.Println("Error reading file:", err)
+				continue
+			}
+
+			var task Task
+			err = json.Unmarshal(data, &task)
+			if err != nil {
+				fmt.Println("Error decoding JSON:", file, err)
+				continue
+			}
+
+			fmt.Printf("ID: %d\nName: %s\nDescription: %s\nStatus: %d\nCreation Date: %s\nTerm: %s\n\n",
+				task.ID, task.Name, task.Description, task.Status, task.CreationDate.Format("2006-01-02"), task.Term.Format("2006-01-02"))
+		}
+	} else {
+		task := SearchTask(arg) 
+
+		if task == nil {
+			fmt.Println("Task not found.")
+			return
+		}
+
+		fmt.Printf("ID: %d\nName: %s\nDescription: %s\nStatus: %d\nCreation Date: %s\nTerm: %s\n\n",
+			task.ID, task.Name, task.Description, task.Status, task.CreationDate.Format("2006-01-02"), task.Term.Format("2006-01-02"))	
+	}
 }
