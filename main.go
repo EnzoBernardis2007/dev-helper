@@ -17,5 +17,7 @@ func main() {
 	switch command {
 	case "tasks":
 		HandleTasksCommand()
+	case "git":
+		HandleGit()
 	}
 }
