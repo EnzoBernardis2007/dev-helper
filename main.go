@@ -15,6 +15,8 @@ func main() {
 	command := os.Args[1]
 
 	switch command {
+	case "tasks":
+		HandleTasksCommand()
 	case "git":
 		HandleGit()
 	}
