@@ -29,7 +29,6 @@ type Task struct {
 // HELP FUNCS
 func GetLastID() int {
 	if _, err := os.Stat("dh"); os.IsNotExist(err) {
-		fmt.Println("No Dev Helper initialized, run tasks init to initialize")
 		return -1
 	}
 
@@ -83,9 +82,20 @@ func HandleTasksCommand() {
 		fmt.Println("Insufficient")
 	}
 
+	dirPath := "dh"
+
+	_, err := os.Stat(dirPath)
+
+	if os.IsNotExist(err) && os.Args[2] != "init-manager" {
+		fmt.Println("Dev Helper has not been initialized")
+		return
+	}
+
 	switch os.Args[2] {
-	case "init":
-		InitTasks()
+	case "init-manager":
+		InitManager()
+	case "drop-manager":
+		DropManager()
 	case "create":
 		CreateTask()
 	case "list":
@@ -93,7 +103,7 @@ func HandleTasksCommand() {
 	}
 }
 
-func InitTasks() error {
+func InitManager() error {
 	path := "./dh"
 
 	if _, err := os.Stat(path); os.IsNotExist(err) {
@@ -108,6 +118,16 @@ func InitTasks() error {
 	}
 
 	return nil
+}
+
+func DropManager() {
+	dirPath := "dh"
+
+	err := os.RemoveAll(dirPath)
+	if err != nil {
+		fmt.Println("Error trying remove dir:", err)
+		return
+	}
 }
 
 func CreateTask() {
