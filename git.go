@@ -29,38 +29,73 @@ dh/`
 	if err == nil {
 		if strings.Contains(string(data), content) {
 			fmt.Println("The rules are already present in .gitignore!")
-			return
-		}
+		} else {
+			file, err := os.OpenFile(filename, os.O_APPEND|os.O_WRONLY, 0644)
+			if err != nil {
+				fmt.Println("Error opening .gitignore:", err)
+				return
+			}
+			defer file.Close()
 
-		file, err := os.OpenFile(filename, os.O_APPEND|os.O_WRONLY, 0644)
+			_, err = file.WriteString("\n\n" + content)
+			if err != nil {
+				fmt.Println("Error writing to .gitignore:", err)
+				return
+			}
+			fmt.Println("New rules added to .gitignore successfully!")
+		}
+	} else {
+		file, err := os.Create(filename)
 		if err != nil {
-			fmt.Println("Error opening .gitignore:", err)
+			fmt.Println("Error creating .gitignore:", err)
 			return
 		}
 		defer file.Close()
 
-		_, err = file.WriteString("\n\n" + content)
+		_, err = file.WriteString(content)
 		if err != nil {
 			fmt.Println("Error writing to .gitignore:", err)
 			return
 		}
-
-		fmt.Println("New rules added to .gitignore successfully!")
-		return
+		fmt.Println(".gitignore created successfully!")
 	}
 
-	file, err := os.Create(filename)
+	if os.Args[3] == "--react" {
+		reactContent := `# Node modules
+/node_modules/
+
+# Build output
+/build/
+
+# System Files
+.DS_Store
+Thumbs.db
+
+# Environment files
+.env
+.env.local
+.env.development
+.env.test
+.env.production
+`
+		AddToGitignore(reactContent)
+	}
+}
+
+func AddToGitignore(content string) {
+	filename := ".gitignore"
+	file, err := os.OpenFile(filename, os.O_APPEND|os.O_WRONLY, 0644)
 	if err != nil {
-		fmt.Println("Error creating .gitignore:", err)
+		fmt.Println("Error opening .gitignore:", err)
 		return
 	}
 	defer file.Close()
 
-	_, err = file.WriteString(content)
+	_, err = file.WriteString("\n\n" + content)
 	if err != nil {
 		fmt.Println("Error writing to .gitignore:", err)
 		return
 	}
 
-	fmt.Println(".gitignore created successfully!")
+	fmt.Println("React-specific rules added to .gitignore!")
 }

@@ -19,7 +19,10 @@ func HandleHelp() {
 }
 
 func Introduction() {
-	flag := os.Args[3]
+	var flag string
+	if len(os.Args) >= 4 {
+		flag = os.Args[3]
+	}
 
 	if flag == "--basic" {
 		fmt.Println("---> Tasks")
