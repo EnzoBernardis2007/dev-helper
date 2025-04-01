@@ -32,14 +32,35 @@ func GetLastID() int {
 		return -1
 	}
 
-	files, err := filepath.Glob("dh/tasks*.json")
+	files, err := filepath.Glob("dh/task*.json")
 	if err != nil {
 		fmt.Println("Error searching files")
 		return -1
 	}
 
-	return len(files)
+	var lastID int
+	for _, file := range files {
+		var task Task
+		data, err := os.ReadFile(file)
+		if err != nil {
+			fmt.Println("Error reading file:", file, err)
+			continue
+		}
+		err = json.Unmarshal(data, &task)
+		if err != nil {
+			fmt.Println("Error decoding JSON in file:", file, err)
+			continue
+		}
+
+		// Atualiza o maior ID encontrado
+		if task.ID > lastID {
+			lastID = task.ID
+		}
+	}
+
+	return lastID
 }
+
 
 func ReadAllFiles() []string {
 	files, err := filepath.Glob("dh/task*.json")
@@ -98,6 +119,8 @@ func HandleTasksCommand() {
 		DropManager()
 	case "create":
 		CreateTask()
+	case "delete":
+		DeleteTask()
 	case "list":
 		PrintTask()
 	}
@@ -112,9 +135,9 @@ func InitManager() error {
 			return err
 		}
 
-		fmt.Println("Dev Helper initialized")
+		fmt.Println("Dev Helper Tasks initialized")
 	} else {
-		fmt.Println("Dev Helper already been initialized")
+		fmt.Println("Dev Helper Tasks already been initialized")
 	}
 
 	return nil
@@ -175,6 +198,27 @@ func CreateTask() {
 	}
 
 	fmt.Println("Task created succefully")
+}
+
+func DeleteTask() {
+	name := os.Args[3]
+	task := SearchTask(name)
+
+	if task != nil {
+		// Define o nome do arquivo a ser removido
+		filePath := fmt.Sprintf("dh/task%d.json", task.ID)
+
+		// Remove o arquivo
+		err := os.Remove(filePath)
+		if err != nil {
+			fmt.Println("Erro ao deletar o arquivo:", err)
+			return
+		}
+
+		fmt.Printf("%s has been deleted successfully!\n", name)
+	} else {
+		fmt.Println("Task not found.")
+	}
 }
 
 func PrintTask() {
